@@ -1,13 +1,10 @@
-function play()
-{
-    console.log(document.getElementById("ini_t").value);
-    document.getElementById("tigerNum").innerHTML=3000;
-    //window.alert("play");
-    //window.alert(document.getElementById("myCanvas").width);
-}
 
 var canvas = document.getElementById('myCanvas');
 var	context = canvas.getContext('2d');
+
+var liveTigers=0;//存活的老虎数量
+var liveCows=0;//存活的牛的数量
+var liveGrasses=0;//存活的草的数量
 
 
 const  UP=1;
@@ -40,21 +37,21 @@ class species
     }
     move()
     {
-        if(live)
+        if(this.live)
         {
-            switch(dir)
+            switch(this.dir)
             {
                 case UP:
-                    y--;
+                    this.y-=10;
                     break;
                 case DOWN:
-                    y++;
+                    this.y+=10;
                     break;
                 case LEFT:
-                    x--;
+                    this.x-=10;
                     break;
                 case RIGHT:
-                    x++;
+                    this.x+=10;
                     break;
                 case STAY:
                     break;
@@ -63,11 +60,10 @@ class species
             }
         }
     }
-    tick()
+    randomMove()
     {
-        if(live)
-        age++;
-        this.check();
+        this.dir = 1 + parseInt(Math.random()*10)%5;
+        this.move();
     }
 }
 
@@ -90,6 +86,16 @@ class Grass extends species
     {
         Grass.number++;
         return Grass.number;
+    }
+    tick()//生命时钟
+    {
+        //每一次时钟次数，年龄都会变化，能量也会变化
+        if(this.live)
+        {
+            this.age++;
+            this.energy--;
+        }
+        this.check();
     }
 }
 
@@ -159,8 +165,32 @@ var tigers = new Array();
 var cows = new Array();
 var grasses = new Array();
 
+
+function inside(x,y,m,n,p,q)//    return x >= 0 && y >= 0 && x < n && m<x && p<y && y<q;
+{
+    return x >= 0 && y >= 0 && x <= n && m<=x && p<=y && y<=q;
+}
+function iscollide(s1,s2)
+{
+   //矩形判断 一个点是否在另外一个矩形里面
+    //考虑四个点
+    for(var i =0;i<=1;i++)
+    {
+        for(var j=0;i<=1;j++)
+        {
+            if(inside(s1.x + i*10, s1.y+i*10, s2.x, s2.x+10, s2.y, s2.y+10))
+            return true;
+        }
+
+    }
+    return false;
+}
+
+
+
 function initGrass()
 {
+    grasses.splice(0,grasses.length);
     for(var i=0;i<100;i++)
     {
         for(var j=0;j<60;j++)
@@ -168,60 +198,74 @@ function initGrass()
             var temp=new Grass(parseInt(Math.random()*10)%10);
             temp.x = i*10;
             temp.y = j*10;
-            {if(Math.random()>0.5)  temp.live = true;else  temp.live=false};
+            if(Math.random()>0.5)  
+            {
+                temp.live = true;
+                liveGrasses++;
+            }
+            else  
+            temp.live=false;
             grasses.push(temp);
         }
     }
 }
 
-function initCow()
+function initCow(cowNum)
 {
-    /**
-     *     for(var i=0;i<100;i++)
+    cows.splice(0,cows.length);
+    for(var i=0;i<cowNum;i++)
     {
         var temp = new Cow();
-        temp.x = parseInt(Math.random()*100)%100;
-        temp.y = parseInt(Math.random()*60)%60;
+        temp.x = (parseInt(Math.random()*100)%100)*10;
+        temp.y = (parseInt(Math.random()*60)%60)*10;
         cows.push(temp);
+        liveCows++;
     }
-     */
+     
 
 }
 
-function initTiger()
+function initTiger(tigerNum)
 {
-    /**
-     *    for(var i=0;i<100;i++)
+    tigers.splice(0,tigers.length);
+    for(var i=0;i<tigerNum;i++)
     {
         var temp = new Tiger();
-        temp.x = parseInt(Math.random()*100)%100;
-        temp.y = parseInt(Math.random()*60)%60;
+        temp.x = (parseInt(Math.random()*100)%100)*10;
+        temp.y = (parseInt(Math.random()*60)%60)*10;
         tigers.push(temp);
+        liveTigers++;
     } 
-     */
-
+     
 }
 
 
 function drawCow()
 {
+
     for(i in cows)
     {
-        context.fillStyle = "black";
-        cows[i].x+=1;
-        cows[i].y+=1;
-        context.fillRect(cows[i].x,cows[i].y,10,10);
+        if(cows[i].live)
+        {
+            context.fillStyle = "red";
+            cows[i].randomMove();
+            context.fillRect(cows[i].x,cows[i].y,10,10);
+            liveCows++;
+        }
+
     }
 }
 
 function drawGrass()
 {
+
     for(i in grasses)
     {
         if(grasses[i].live)
         {
             context.fillStyle="green";
             context.fillRect(grasses[i].x,grasses[i].y,10,10);
+            liveGrasses++;
         }
 
     }
@@ -229,16 +273,33 @@ function drawGrass()
 
 function drawTiger()
 {
+
     for( i in tigers)
     {
         if(tigers[i].live)
         {
             context.fillStyle = "blue";
             context.fillRect(tigers[i].x,tigers[i].y,10,10);
+            liveTigers++;
         }
     }
 }
 
+//障碍物的位置
+barriers = [
+    [10,10],
+    [20,20],
+    [40,50]
+];
+
+function drawBarrier()
+{
+    for(i in barriers)
+    {
+        context.fillStyle="orange";
+        context.fillRect(barriers[i][0],barriers[i][1],10,10);
+    }
+}
 
 function GrassReproduce()
 {
@@ -285,14 +346,14 @@ function TigerReproduce()
                 tigers[index].age = 0;
                 tigers[index].energy=3;
                 tigers[index].stillReproduce = true;
-                tiegrs[index].x = tigers[i].x+10;
+                tiegrs[index].x = tigers[i].x;
 
                 tigers[i].stillReproduce = false;
             }
             else
             {
                 let temp = new Tiger();
-                temp.x = tigers[i].x+10;
+                temp.x = tigers[i].x;
                 tigers.push(temp);
                 tigers[i].stillReproduce = false;
             }
@@ -322,21 +383,24 @@ function CowReproduce()
                 cows[index].age = 0;
                 cows[index].energy=3;
                 cows[index].stillReproduce = true;
-                cows[index].x = cows[i].x+10;
+                cows[index].x = cows[i].x;
 
                 cows[i].stillReproduce = false;
+                cows[i].energy--;//繁殖需要能量
             }
             else
             {
                 let temp = new Cow();
-                temp.x = cows[i].x+10;
+                temp.x = cows[i].x;
                 cows.push(temp);
                 cows[i].stillReproduce = false;
+                cows[i].energy--;//繁殖需要能量
             }
 
         }
     }
 }
+
 //下雨的影响
 function rain(isRain,specie)
 {
@@ -350,39 +414,46 @@ function rain(isRain,specie)
     }
 }
 
-class point
-{
-    constructor(x,y)
-    {
-        this.x =x;
-        this.y=y;
-    }
-}
-
-//障碍物的位置
-barriers = new Array();
-barriers.push(new point(50,50));
-function barrier()
-{
-
-    context.fillStyle="orange";
-    context.fillRect(barriers[0].x,barriers[0].y,10,10);
-}
-
 /**
  * 整个地图每一个方块的信息
  */
+
+//小格的类型定义
+const Start = 1;
+const Barrier = 2;
+
 class grid//一个小格子的信息
 {
     tempCows = [];//储存暂时在这里的cow
     tmepTigers=[];//储存暂时在这里的tiger
     CowSmell;//cow留下的气味
     type;//是否为障碍物
-   constructor(x,y)
-   {
+    constructor(x,y)
+    {
        this.x = x;
        this.y = y;
-   }
+    }
+    deleteCow(id)
+    {
+        for(i in this.tempCows)
+        {
+            if(this.tempCows[i].id==id)
+            {
+                this.tempCows.splice(i,1);
+            }
+        }
+    }
+    deleteTiger(id)
+    {
+        for(i in this.tmepTigers)
+        {
+            if(this.tmepTigers[i].id==id)
+            {
+                this.tmepTigers.splice(i,1);
+            }
+        }
+    }
+
 
 }
 var grids = new Array();
@@ -395,6 +466,37 @@ for(var i=0;i<60;i++)
     }
 }
 
+function check_dir(x,y,dir)
+{
+    switch(dir)
+    {
+        case UP:
+            if(inside(x,y-10,0,1000,600)&& grids[(y-10)/10][x/10].type!=Barrier)
+            return true;
+            return false;
+            
+        case DOWN:
+            if(inside(x,y+10,0,1000,600)&& grids[(y+10)/10][x/10].type!=Barrier)
+            return true;
+            return false;
+
+        case LEFT:
+            if(inside(x-10,y,0,1000,600)&& grids[y/10][(x-10)/10].type!=Barrier)
+            return true;
+            return false;
+
+        case RIGHT:
+            if(inside(x+10,y,0,1000,600)&& grids[y/10][(x+10)/10].type!=Barrier)
+            return true;
+            return false;
+
+        case STAY:
+            break;
+        default:
+            break;
+    }
+}
+
 class node
 {
     x;y;//对应是像素点的位置
@@ -403,16 +505,12 @@ class node
     is_open;
     is_close;
     road;
-    parent ;
+    parent;
+    visited;
 }
-//node的类型定义
-const Start = 1;
-const Barrier = 2;
 
-function inside(x,y,m,n)
-{
-    return x >= 0 && y >= 0 && x < m && y < n;
-}
+
+
 
 dir = [[1,0],[0,1],[-1,0],[0,-1]];
 
@@ -430,7 +528,7 @@ function TigerBFS(dx,dy)//初始的x,y
             //console.log([x,y]);
             //console.log(grids[y/10][x/10].tempCows.length);
             //continue;
-            if( inside(x,y,1000,600) &&  grids[y/10][x/10].tempCows.length !=0 )
+            if( inside(x,y,0,1000,0,600) &&  grids[y/10][x/10].tempCows.length !=0 )
             {
                 for(k in grids[y/10][x/10].tempCows)
                 preys.push(grids[y/10][x/10].tempCows[k]);
@@ -497,7 +595,7 @@ function TigerBFS(dx,dy)//初始的x,y
         {
             nextX = temp.x + dir[i][0]*10;
             nextY = temp.y + dir[i][1]*10;
-            if(inside(nextX,nextY,1000,600)&& !map[nextY/10][nextX/10].is_close && !map[nextY/10][nextX/10].is_open && map[nextY/10][nextX/10].type!=Barrier)
+            if(inside(nextX,nextY,0,1000,0,600)&& !map[nextY/10][nextX/10].is_close && !map[nextY/10][nextX/10].is_open && map[nextY/10][nextX/10].type!=Barrier)
             {
                 u = map[nextY/10][nextX/10];
                 u.parent = map[temp.y/10][temp.x/10];
@@ -520,37 +618,69 @@ function TigerBFS(dx,dy)//初始的x,y
 
 }
 
-function CowEscapce()
+function CowEscapce(x,y)
 {
     enemy=[];
-    
-}
+    var start = [x,y];
+    var q = new queue();
+    //var next;
+    var flag = false;
+    q.push(start);
+    while(!q.empty())
+    {
+        start = q.pop();
+        for(i in dir)
+        {
+            var nextX = start[0]+dir[i][0]*10;
+            var nextY = start[1]+dir[i][1]*10;
+            if(inside(nextX,nextY,Math.max(0,x-50),Math.min(1000,x+50),Math.max(0,y-60),Math.min(600,y+60)) && 
+            grids[nextY/10][nextX/10].tmepTigers.length !=0)//未做已访问处理
+            {
+                enemy.push(grids[nextY/10][nextX/10].tmepTigers[0]);
+                flag = true;
+                break;
+            }
+        }
+        if(flag)
+        break;
+    }
 
-//测试bfs
-test = new Cow();
-test.x = 40;
-test.y = 30;
-grids[3][4].tempCows.push(test);
-TigerBFS(0,0);
+}
 
 
 
 function draw()
 {
     context.clearRect(0,0,1000,600);
-    for(var i=0;i<100;i++);
-    TigerBFS(0,0);
+    //for(var i=0;i<100;i++);
+    //TigerBFS(0,0);
     drawGrass();
     drawCow();
     drawTiger();
+    drawBarrier();
+    document.getElementById("tigerNum").innerHTML=liveTigers;
+    document.getElementById("grassNum").innerHTML=liveGrasses;
+    document.getElementById("cowNum").innerHTML=liveCows;
+    liveCows=0;
+    liveGrasses=0;
+    liveTigers=0;
     setTimeout("draw()",10);
+    //console.log();
+    //requestAnimationFrame(draw);
 }
-initTiger();
-initGrass();
-initCow();
-draw();
- 
 
-
+function play()
+{
+    //console.log(document.getElementById("ini_t").value);
+    var t_num = document.getElementById("ini_t").value;
+    var c_num = document.getElementById("ini_c").value;
+    //document.getElementById("tigerNum").innerHTML=3000;
+    initTiger(t_num);
+    initCow(c_num);
+    initGrass();
+    draw();
+    //window.alert("play");
+    //window.alert(document.getElementById("myCanvas").width);
+}
 
 
