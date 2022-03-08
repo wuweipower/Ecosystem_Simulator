@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>-->
+
+        
+        <script src="dataStruc.js"></script>
+        <meta charset="utf-8">
+        <title>simulator</title>
+
+        <link rel = "stylesheet"  type="text/css" href="style.css"> 
+    </head>
+    <body>
+    <canvas id="myCanvas" height="600"  width="1000" style="border:1px solid #d3d3d3;"></canvas>
+        <div class="bottom">
+            tiger:<span id="tigerNum">    </span>
+            grass:<span id="grassNum">    </span> 
+            <br>
+            Initial Tiger Number:<input class="data" id="ini_t" >
+            Initial Grass Number:<input class="data" id="ini_g">
+            <button id="start" onclick="play()">start</button>
+            <script src="simulator.js"></script>
+        </div>
+
+    </body>
+</html>
