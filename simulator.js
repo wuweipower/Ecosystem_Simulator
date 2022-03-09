@@ -15,20 +15,22 @@ const STAY=5;
 
 class species
 {
-    x;y;
-    live;
+    x;y;//坐标 都是10倍
+    live;//一个flag，标记
     energy;
     maxEnergy;
+    fullEnergy;//比较温饱的能量
     age;
-    maxAge;
+    maxAge;//最大年纪
     cost_of_prey;
     gain_of_prey;
-    speed;
-    maxSpeed;
-    dir;
+    normalSpeed;//正常速度
+    speed;//一次移动多少格 目前速度
+    maxSpeed;//最大速度
+    dir;//目前的方向
     reproduceAge;
-    stillReproduce;
-    id;
+    stillReproduce;//设计为与年龄有关的 是否再生育
+    id;//从1开始
     constructor(){}
     check() 
     {
@@ -243,6 +245,7 @@ function initGrass()
             }
             else  
             temp.live=false;
+
             grasses.push(temp);
         }
     }
@@ -258,6 +261,8 @@ function initCow(cowNum)
         temp.y = (parseInt(Math.random()*60)%60)*10;
         cows.push(temp);
         liveCows++;
+        //初始化grid的cows
+        grids[temp.y/10][temp.x/10].tempCows.push(temp.id);
     }
      
 
@@ -273,9 +278,13 @@ function initTiger(tigerNum)
         temp.y = (parseInt(Math.random()*60)%60)*10;
         tigers.push(temp);
         liveTigers++;
+        //初始化grid的tigers
+        grids[temp.y/10][temp.x/10].tmepTigers.push(temp.id);
     } 
      
 }
+
+
 
 
 function drawCow()
@@ -323,7 +332,16 @@ function drawTiger()
     }
 }
 
+function drawSpecies(arr,color,liveNum)
+{
 
+}
+
+/**
+ * 繁殖的策略
+ * 将可能标记为死亡的个体复活 重新设置属性
+ * 或者在数组中增加对象 
+ */
 function GrassReproduce()
 {
     var temp = new Array();
@@ -339,7 +357,7 @@ function GrassReproduce()
         if(grasses[i].live && temp.length!=0 && grasses[i].age>=grasses[i].reproduceAge && grasses[i].stillReproduce)
         {
             var index = temp.shift();
-            console.log(index);
+            //console.log(index);
             grasses[index].live = true;
             grasses[index].age = 0;
             grasses[index].energy=3;
@@ -370,7 +388,7 @@ function TigerReproduce()
                 tigers[index].age = 0;
                 tigers[index].energy=3;
                 tigers[index].stillReproduce = true;
-                tiegrs[index].x = tigers[i].x;
+                tigers[index].x = tigers[i].x;
 
                 tigers[i].stillReproduce = false;
             }
@@ -379,6 +397,7 @@ function TigerReproduce()
                 let temp = new Tiger();
                 temp.x = tigers[i].x;
                 tigers.push(temp);
+
                 tigers[i].stillReproduce = false;
             }
 
@@ -448,8 +467,8 @@ const Barrier = 2;
 
 class grid//一个小格子的信息
 {
-    tempCows = [];//储存暂时在这里的cow
-    tmepTigers=[];//储存暂时在这里的tiger
+    tempCows = [];//储存暂时在这里的cow 的id
+    tmepTigers=[];//储存暂时在这里的tiger的id
     CowSmell;//cow留下的气味
     type;//是否为障碍物
     constructor(x,y)
@@ -457,29 +476,29 @@ class grid//一个小格子的信息
        this.x = x;
        this.y = y;
     }
-    deleteCow(id)
+    deleteCow(id)//要与位置移动绑定在一起
     {
         for(i in this.tempCows)
         {
-            if(this.tempCows[i].id==id)
+            if(this.tempCows[i]==id)
             {
                 this.tempCows.splice(i,1);
             }
         }
     }
-    deleteTiger(id)
+    deleteTiger(id)//要与位置移动绑定在一起
     {
         for(i in this.tmepTigers)
         {
-            if(this.tmepTigers[i].id==id)
+            if(this.tmepTigers[i]==id)
             {
                 this.tmepTigers.splice(i,1);
             }
         }
     }
-
-
 }
+
+//创建一个方格的二维数组
 var grids = new Array();
 for(var i=0;i<60;i++)
 {
@@ -494,7 +513,7 @@ for(var i=0;i<60;i++)
 
 //console.log(grids[4][3]);
 //障碍物的位置
-barriers = [
+var barriers = [
     [10,10],
     [20,20],
     [40,50]
@@ -506,9 +525,11 @@ function drawBarrier()
     {
         context.fillStyle="orange";
         context.fillRect(barriers[i][0],barriers[i][1],10,10);
+        grids[barriers[i][1]/10][barriers[i][0]/10].type = Barrier;
     }
 }
 
+//判断这个方向是否越界或者是障碍物
 function check_dir(x,y,dir)
 {
     switch(dir)
@@ -540,6 +561,7 @@ function check_dir(x,y,dir)
     }
 }
 
+//BFS专用
 class node
 {
     x;y;//对应是像素点的位置
@@ -590,8 +612,9 @@ function TigerBFS(dx,dy)//初始的x,y
     /**根据某种规则选择猎物，也可以不追这个猎物 */
     console.log("find");
     target = preys[0];
-    endX = target.x;
-    endY = target.y;
+    //
+    endX = cows[target].x;
+    endY = cows[target].y;
 
 
     //创建地图
@@ -672,26 +695,18 @@ function TigerBFS(dx,dy)//初始的x,y
 
 
 //test BFS
-t = new Cow();
-t.x=30;
-t.y=20;
-grids[2][3].tempCows.push(t);
-TigerBFS(0,0);
+// t = new Cow();
+// t.x=30;
+// t.y=20;
+// grids[2][3].tempCows.push(t);
+// TigerBFS(0,0);
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+//目前未完全实现
 function CowEscapce(x,y)
 {
     enemy=[];
@@ -720,8 +735,8 @@ function CowEscapce(x,y)
     }
 
 }
-
-function behave()//所有的行动
+//所有的行动
+function behave()
 {
 
     if(Math.random()<0.3)
@@ -746,7 +761,11 @@ function behave()//所有的行动
             else
             {
                 if(cows[i].energy>3)
-                cows[i].randomMove();
+                {
+                    grids[cows[i].y/10][cows[i].x/10].deleteCow(cows[i].id);
+                    cows[i].randomMove();
+                    grids[cows[i].y/10][cows[i].x/10].tempCows.push(cows[i].id);
+                }
                 else
                 {
                     //执行找草
@@ -769,8 +788,13 @@ function behave()//所有的行动
     {
         if(tigers[i].live)
         {
-            if(tigers[i].energy>4)
-            tigers[i].randomMove();
+            if(tigers[i].energy>4)//温饱状态
+            {
+                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(cows[i].id);
+                tigers[i].randomMove();
+                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(cows[i].id);
+            }
+
             else
             {
                 //执行找牛
