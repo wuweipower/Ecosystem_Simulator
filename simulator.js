@@ -7,218 +7,22 @@ var liveCows=0;//存活的牛的数量
 var liveGrasses=0;//存活的草的数量
 
 
-const  UP=1;
-const DOWN=2;
-const LEFT=3;
-const RIGHT=4;
-const STAY=5;
-
-class species
-{
-    x;y;//坐标 都是10倍
-    live;//一个flag，标记
-    energy;
-    maxEnergy;
-    fullEnergy;//比较温饱的能量
-    age;
-    maxAge;//最大年纪
-    cost_of_prey;
-    gain_of_prey;
-    normalSpeed;//正常速度
-    speed;//一次移动多少格 目前速度
-    maxSpeed;//最大速度
-    dir;//目前的方向
-    reproduceAge;
-    stillReproduce;//设计为与年龄有关的 是否再生育
-    id;//从1开始
-    constructor(){}
-    check() 
-    {
-        if(this.age>this.maxAge) this.live = false;
-        if(this.energy<0)this.live;
-    }
-    move()
-    {
-        if(this.live)
-        {
-            switch(this.dir)
-            {
-                case UP:
-                    this.y-=10;
-                    break;
-                case DOWN:
-                    this.y+=10;
-                    break;
-                case LEFT:
-                    this.x-=10;
-                    break;
-                case RIGHT:
-                    this.x+=10;
-                    break;
-                case STAY:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    randomMove()
-    {
-    
-        this.dir = parseInt(Math.random()*10)%5 +1;
-
-        if(check_dir(this.x,this.y,this.dir))
-        {
-            this.move();
-        }
-        else
-        {
-            for(var i =  parseInt(Math.random()*10)%4+1;i<=5;i++)
-            {
-                if(check_dir(this.x,this.y,i))
-                {
-                    this.dir = i;
-                    this.move();
-                    break;
-                }
-            }
-        }
-    }
-}
-
-class Grass extends species
-{
-    static number=0;
-    constructor(age)
-    {
-        super();
-        this.age=age;
-        this.gain_of_prey=2;
-        this.maxAge=400;
-        this.live = true;
-        this.energy=3;
-        this.id=this.add();
-        this.reproduceAge=10;
-        this.stillReproduce = true;
-    }
-    add()
-    {
-        Grass.number++;
-        return Grass.number;
-    }
-    tick()//生命时钟
-    {
-        //每一次时钟次数，年龄都会变化，能量也会变化
-        if(this.live)
-        {
-            this.age++;
-            this.energy--;
-        }
-        this.check();
-    }
-}
-
-class Cow extends species
-{
-    static numebr=0;
-    constructor() 
-    {
-        super();
-        this.age=0;
-        this.gain_of_prey=10;
-        this.maxAge=40;
-        this.live = true;
-        this.energy=3;
-        this.id=this.add();
-        this.reproduceAge=10;
-        this.stillReproduce = true;  
-        this.speed=5;
-        this.cost_of_prey = 5;
-    }
-    add()
-    {
-        Cow.numebr++;
-        return Cow.numebr;
-    }
-    eatGrass(grass)
-    {
-        if(grass.live)
-        {
-            grass.energy--;
-            grass.gain_of_prey--;
-            this.energy = Math.min(this.energy+1-grass.cost_of_prey,this.maxEnergy);
-        }
-    }
-    tick()//生命时钟
-    {
-        //每一次时钟次数，年龄都会变化，能量也会变化
-        if(this.live)
-        {
-            this.age++;
-            this.energy--;
-        }
-        this.check();
-    }
-}
-
-class Tiger extends species
-{
-    static number=0;
-    constructor()
-    {
-        super();
-        this.age=0;
-        this.gain_of_prey=10;
-        this.maxAge=40;
-        this.live = true;
-        this.energy=3;
-        this.id=this.add();
-        this.reproduceAge=10;
-        this.stillReproduce = true;  
-        this.speed=5;
-        this.cost_of_prey = 5;  
-    }
-    add()
-    {
-        Tiger.number++;
-        return Tiger.number;
-    }
-    eatCow(cow)
-    {
-        this.energy=Math.min(this.energy+cow.gain_of_prey,this.maxEnergy);
-        cow.live=false;
-    }
-    tick()//生命时钟
-    {
-        //每一次时钟次数，年龄都会变化，能量也会变化
-        if(this.live)
-        {
-            this.age++;
-            this.energy--;
-        }
-        this.check();
-    }
-}
-
 var tigers = new Array();
 var cows = new Array();
 var grasses = new Array();
 
 
-function inside(x,y,m,n,p,q)//    return x >= 0 && y >= 0 && x < n && m<x && p<y && y<q;
-{
-    return x >= 0 && y >= 0 && x <= n && m<=x && p<=y && y<=q;
-}
+
+
 function iscollide(s1,s2)
 {
    //矩形判断 一个点是否在另外一个矩形里面
     //考虑四个点
     for(var i =0;i<=1;i++)
     {
-        for(var j=0;i<=1;j++)
+        for(var j=0;j<=1;j++)
         {
-            if(inside(s1.x + i*10, s1.y+i*10, s2.x, s2.x+10, s2.y, s2.y+10))
+            if(inside(s1.x + i*10, s1.y+j*10, s2.x, s2.x+10, s2.y, s2.y+10))
             return true;
         }
 
@@ -332,10 +136,6 @@ function drawTiger()
     }
 }
 
-function drawSpecies(arr,color,liveNum)
-{
-
-}
 
 /**
  * 繁殖的策略
@@ -389,13 +189,14 @@ function TigerReproduce()
                 tigers[index].energy=3;
                 tigers[index].stillReproduce = true;
                 tigers[index].x = tigers[i].x;
-
+                tigers[index].y = tigers[i].y;
                 tigers[i].stillReproduce = false;
             }
             else
             {
                 let temp = new Tiger();
                 temp.x = tigers[i].x;
+                temp.y = tigers[i].y;
                 tigers.push(temp);
 
                 tigers[i].stillReproduce = false;
@@ -427,7 +228,7 @@ function CowReproduce()
                 cows[index].energy=3;
                 cows[index].stillReproduce = true;
                 cows[index].x = cows[i].x;
-
+                cows[index].y = cows[i].y;
                 cows[i].stillReproduce = false;
                 cows[i].energy--;//繁殖需要能量
             }
@@ -435,6 +236,7 @@ function CowReproduce()
             {
                 let temp = new Cow();
                 temp.x = cows[i].x;
+                temp.y = cows[i].y;
                 cows.push(temp);
                 cows[i].stillReproduce = false;
                 cows[i].energy--;//繁殖需要能量
@@ -529,37 +331,7 @@ function drawBarrier()
     }
 }
 
-//判断这个方向是否越界或者是障碍物
-function check_dir(x,y,dir)
-{
-    switch(dir)
-    {
-        case UP:
-            if(inside(x,y-10,0,1000-10,0,600-10)&& grids[(y-10)/10 ][x/10].type!=Barrier)
-            return true;
-            return false;
-            
-        case DOWN:
-            if(inside(x,y+10,0,1000-10,0,600-10)&& grids[(y+10)/10][x/10].type!=Barrier)
-            return true;
-            return false;
 
-        case LEFT:
-            if(inside(x-10,y,0,1000-10,0,600-10)&& grids[y/10][(x-10)/10].type!=Barrier)
-            return true;
-            return false;
-
-        case RIGHT:
-            if(inside(x+10,y,0,1000-10,0,600-10)&& grids[y/10][(x+10)/10].type!=Barrier)
-            return true;
-            return false;
-
-        case STAY:
-            break;
-        default:
-            break;
-    }
-}
 
 //BFS专用
 class node
@@ -578,7 +350,9 @@ class node
 
 dir = [[1,0],[0,1],[-1,0],[0,-1]];//右，下，左，上
 
-function TigerBFS(dx,dy)//初始的x,y
+
+//包含找猎物，找不到后的随机运动，找到后的跟踪
+function TigerBFS(id,dx,dy)//初始的x,y
 {
     //先九宫格搜索猎物
     var range=10;//格子数
@@ -595,23 +369,63 @@ function TigerBFS(dx,dy)//初始的x,y
             if( inside(x,y,0,1000-10,0,600-10) &&  grids[y/10][x/10].tempCows.length !=0 )
             {
                 for(k in grids[y/10][x/10].tempCows)
+                if(cows[grids[y/10][x/10].tempCows[k]].live)
                 preys.push(grids[y/10][x/10].tempCows[k]);
             }
         }
     }
 
-    //确定目标猎物
+    //无目标猎物则随机移动
     if(preys.length==0)
     {
         //console.log("No");
-        return false;//未找到猎物 执行根据气味移动的函数
+
+        //往气味大的地方移动
+        var flag =0;
+        var maxSmell =0;
+        for(i in dir)
+        {
+            x = dx + dir[i][0]*10;
+            y = dy + dir[i][1]*10;
+            if(inside(x,y,0,1000-10,0,600-10))
+            {
+                if(grids[y/10][x/10].CowSmell>maxSmell)
+                {
+                    maxSmell = grids[y/10][x/10].CowSmell;
+                    flag = i;
+                }
+            }
+        }
+        //随机移动
+        if(maxSmell==0)
+        {
+            //console.log("BFS里面的前随机移动x",tigers[id].x);
+            //console.log("BFS里面的前随机移动y",tigers[id].y);
+            grids[tigers[id].y/10][tigers[id].x/10].deleteTiger(id);
+            tigers[id].randomMove();
+            grids[tigers[id].y/10][tigers[id].x/10].tmepTigers.push(id);
+            //console.log("BFS里面的后随机移动x",tigers[id].x);
+            //console.log("BFS里面的后随机移动y",tigers[id].y);
+        }
+        else
+        {
+            grids[tigers[id].y/10][tigers[id].x/10].deleteTiger(id);
+            if(flag==0)tigers[id].dir=RIGHT;
+            else if(flag==1)tigers[id].dir = DOWN;
+            else if(flag==2)tigers[id].dir = LEFT;
+            else tigers[id].dir = UP;
+            tigers[id].move();
+            grids[tigers[id].y/10][tigers[id].x/10].tmepTigers.push(id);
+        }
+        return ;//未找到猎物 执行根据气味移动的函数
     }
 
 
 
     /**根据某种规则选择猎物，也可以不追这个猎物 */
     console.log("find");
-    target = preys[0];
+    var target = preys[0];
+    console.log("找到的cow的目标id",target);
     //
     endX = cows[target].x;
     endY = cows[target].y;
@@ -644,7 +458,7 @@ function TigerBFS(dx,dy)//初始的x,y
     {
         var temp = open.pop();
         map[temp.y/10][temp.x/10].is_close = true;
-        if(map[endY][endX].is_close)
+        if(map[endY/10][endX/10].is_close)
         {
             nx = endX/10;
             ny = endY/10;
@@ -689,7 +503,9 @@ function TigerBFS(dx,dy)//初始的x,y
         }
     }
     */ 
-   console.log(road);
+   //console.log(road);
+   
+
 
 }
 
@@ -735,6 +551,35 @@ function CowEscapce(x,y)
     }
 
 }
+
+
+function CowFindGrass(id)
+{
+    iden = (cows[id].x/10)*60+(cows[id].y/10);
+    if(eatGrass(grasses[iden]))
+    {
+        return;
+    }
+    for(var i =-1;i<=1;i++)
+    {
+        for(var j=-1;j<=1;j++)
+        {
+            if(inside(cows[id].x + i*10, cows[id].y+j*10, 0,1000-10,0,600-10))
+            {
+                iden = (cows[id].x/10 +i)*60+(cows[id].y/10 +j);
+                if(grasses[iden].live)
+                {
+                    grids[cows[id].y/10][cows[id].x/10].deleteCow(id);
+                    cows[id].eatGrass(grasses[iden]);
+                    cows[id].x = grasses[iden].x;
+                    cows[id].y = grasses[iden].y;
+                    grids[cows[id].y/10][cows[id].x/10].tempCows.push(id);
+                    return;
+                }
+            }
+        }
+    }
+}
 //所有的行动
 function behave()
 {
@@ -760,7 +605,7 @@ function behave()
             }
             else
             {
-                if(cows[i].energy>3)
+                if(cows[i].energy>20)//随便走
                 {
                     grids[cows[i].y/10][cows[i].x/10].deleteCow(cows[i].id);
                     cows[i].randomMove();
@@ -768,12 +613,12 @@ function behave()
                 }
                 else
                 {
-                    //执行找草
-                    //执行吃草
+                    CowFindGrass(i);
                 }
             }
             cows[i].tick();
         }
+``
     }
 
     //对于可能的情况进行繁殖
@@ -788,19 +633,26 @@ function behave()
     {
         if(tigers[i].live)
         {
-            if(tigers[i].energy>4)//温饱状态
+            //console.log(tigers[i].x,"每次的x")
+            //console.log(tigers[i].y,"每次的y")
+
+            if(tigers[i].energy>2)//温饱状态
             {
-                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(cows[i].id);
+                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(tigers[i].id);
                 tigers[i].randomMove();
-                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(cows[i].id);
+                grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(tigers[i].id);
             }
 
             else
             {
-                //执行找牛
-                //执行吃牛
+
+                TigerBFS(i,tigers[i].x,tigers[i].y);
             }
             tigers[i].tick();
+        }
+        else
+        {
+            grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(i);
         }
     }
     //对于可能的情况进行繁殖
@@ -835,10 +687,11 @@ function draw()
     document.getElementById("grassNum").innerHTML=liveGrasses;
     document.getElementById("cowNum").innerHTML=liveCows;
     behave();
+
     liveCows=0;
     liveGrasses=0;
     liveTigers=0;
-    setTimeout("draw()",10);
+    setTimeout("draw()",100);
     //console.log();
     //requestAnimationFrame(draw);
 }
@@ -849,12 +702,53 @@ function play()
     var t_num = document.getElementById("ini_t").value;
     var c_num = document.getElementById("ini_c").value;
     //document.getElementById("tigerNum").innerHTML=3000;
+    tigers.splice(0,tigers.length);
+    grasses.splice(0,grasses.length);
+    cows.splice(0,cows.length);
+    liveCows=0;
+    liveGrasses=0;
+    liveTigers=0;
     initTiger(t_num);
     initCow(c_num);
     initGrass();
+    Grass.number=-1;
+    Cow.numebr=-1;
+    Tiger.number = -1;
+    //console.log(Tiger.number);
     draw();
     //window.alert("play");
     //window.alert(document.getElementById("myCanvas").width);
 }
 
+//测试碰撞函数
+
+// t1 = new Tiger();
+// t1.x = 0;
+// t1.y =0;
+// c1 = new Cow();
+// c1.x = 400;
+// c1.y = 0;
+// while(1)
+// {
+//     if(t1.live)
+//     {
+//         context.fillStyle = "blue";
+//         context.fillRect(t1.x,t1.y,10,10);
+//     }
+//     if(c1.live)
+//     {
+//         context.fillStyle = "red";
+//         context.fillRect(c1.x,c1.y,10,10);
+//     }
+//     if(!iscollide(t1,c1))
+//     {
+//         t1.x+=1;
+//     }
+//     else
+//     {
+//         t1.eatCow(c1);
+//         console.log(c1.live);
+//         break;
+//     }
+// }
 
