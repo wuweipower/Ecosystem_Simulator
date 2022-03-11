@@ -536,32 +536,77 @@ function TigerBFS(id,dx,dy)//初始的x,y
 
 
 //目前未完全实现
-function CowEscapce(x,y)
+function CowEscapce(id,x,y) 
 {
-    enemy=[];
-    var start = [x,y];
-    var q = new queue();
-    //var next;
-    var flag = false;
-    q.push(start);
-    while(!q.empty())
+    var enemy=[];//坐标
+    var range = 4;
+    for(var i=-range;i<range;i++)
     {
-        start = q.pop();
-        for(i in dir)
+        for(var j=-range;j<range;j++)
         {
-            var nextX = start[0]+dir[i][0]*10;
-            var nextY = start[1]+dir[i][1]*10;
-            if(inside(nextX,nextY,Math.max(0,x-50),Math.min(1000,x+50),Math.max(0,y-60),Math.min(600,y+60)) && 
-            grids[nextY/10][nextX/10].tempTigers.length !=0)//未做已访问处理
+            var nextX = x+i*10;
+            var nextY = y+j*10;
+            if(inside(nextX,nextY,0,1000-10,0,600-10)&&grids[nextY/10][nextX/10].tempTigers.length!=0);
             {
-                enemy.push(grids[nextY/10][nextX/10].tempTigers[0]);
+                enemy.push([nextX,nextY]);
+            }
+        }
+    }
+    //不需要跑
+    if(enemy.length==0) return false;
+    //计算逃跑向量
+    var escX=0;
+    var escY=0;
+    for(var i=0;i<enemy.length;i++)
+    {
+        escX+=x-enemy[i][0];
+        escY+=x-enemy[i][1];
+    }
+    if(escX==0 && escY==0)//零向量则随机移动
+    {
+        grids[y/10][x/10].deleteCow(id);
+        cows[id].randomMove();
+        grids[cows[id].y/10][cows[id].x/10].tempCows.push(id);
+    }
+    else
+    {
+        var flag = false;
+        grids[y/10][x/10].deleteCow(id);
+        if(Math.abs(escX)>Math.abs(escY))
+        {
+            if(escX<0 && check_dir(x,y,LEFT))
+            {
+                cows[id].dir = LEFT;
                 flag = true;
-                break;
+            }
+            else if(check_dir(x,y,RIGHT))
+            {
+                cows[id].dir = RIGHT;
+                flag = true;
+            }
+        }
+        if(!flag)
+        {
+            if(escY<0&& check_dir(x,y,DOWN))
+            {
+                cows[id].dir = DOWN;
+                flag = true;
+            }
+            else if(check_dir(x,y,UP))
+            {
+                cows[id].dir = UP;
+                flag =true;
             }
         }
         if(flag)
-        break;
+        cows[id].move();
+        else
+        {
+            cows[id].randomMove();
+        }
+        grids[cows[id].y/10][cows[id].x/10].tempCows.push(id);
     }
+    return true;
 
 }
 
@@ -615,18 +660,15 @@ function behave()
         if(cows[i].live)
         {
             //console.log("a",i)
-            if(0)
+            if(CowEscapce(i,cows[i].x,cows[i].y))
             {
-                //执行逃跑
+                //会自动执行逃跑
             }
             else
             {
-                //console.log("a",i);
                 if(cows[i].energy>20)//随便走
                 {
-                    //console.log("again",i);
                     grids[cows[i].y/10][cows[i].x/10].deleteCow(cows[i].id);
-                    //console.log("b",i);
                     cows[i].randomMove();
                     grids[cows[i].y/10][cows[i].x/10].tempCows.push(cows[i].id);
                 }
@@ -668,10 +710,6 @@ function behave()
                 TigerBFS(i,tigers[i].x,tigers[i].y);
             }
             tigers[i].tick();
-        }
-        else
-        {
-            grids[tigers[i].y/10][tigers[i].x/10].deleteTiger(i);
         }
     }
     //对于可能的情况进行繁殖
