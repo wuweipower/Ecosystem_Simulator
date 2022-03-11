@@ -156,12 +156,15 @@ function GrassReproduce()
     {
         if(grasses[i].live && temp.length!=0 && grasses[i].age>=grasses[i].reproduceAge && grasses[i].stillReproduce)
         {
-            var index = temp.shift();
+            var index = parseInt(Math.random()*temp.length)%temp.length;
+            //index = temp.shift();
+            var backLiveId = temp[index];
+            temp.splice(index,1);
             //console.log(index);
-            grasses[index].live = true;
-            grasses[index].age = 0;
-            grasses[index].energy=3;
-            grasses[index].stillReproduce = true;
+            grasses[backLiveId].live = true;
+            grasses[backLiveId].age = 0;
+            grasses[backLiveId].energy=3;
+            grasses[backLiveId].stillReproduce = true;
             grasses[i].stillReproduce = false;
         }
     }
@@ -184,6 +187,7 @@ function TigerReproduce()
             if(temp.length!=0)
             {
                 var index = temp.shift();
+                //console.log('tiger index',index);
                 tigers[index].live = true;
                 tigers[index].age = 0;
                 tigers[index].energy=3;
@@ -209,14 +213,14 @@ function TigerReproduce()
 function CowReproduce()
 {
     var temp = new Array();
-    for(i in cows)
+    for(var i=0;i<cows.length;i++)
     {
         if(!cows[i].live)
         {
             temp.push(cows[i].id);
         }
     }
-    for(i in cows)
+    for(var i=0;i<cows.length;i++)
     {
         if(cows[i].live  && cows[i].age>=cows[i].reproduceAge && cows[i].stillReproduce)
         {
@@ -237,6 +241,7 @@ function CowReproduce()
                 let temp = new Cow();
                 temp.x = cows[i].x;
                 temp.y = cows[i].y;
+                temp.live = true;
                 cows.push(temp);
                 cows[i].stillReproduce = false;
                 cows[i].energy--;//繁殖需要能量
@@ -282,7 +287,7 @@ class grid//一个小格子的信息
     {
         for(i in this.tempCows)
         {
-            if(this.tempCows[i]==id)
+            if(this.tempCows[i]===id)
             {
                 this.tempCows.splice(i,1);
             }
@@ -369,8 +374,15 @@ function TigerBFS(id,dx,dy)//初始的x,y
             if( inside(x,y,0,1000-10,0,600-10) &&  grids[y/10][x/10].tempCows.length !=0 )
             {
                 for(k in grids[y/10][x/10].tempCows)
-                if(cows[grids[y/10][x/10].tempCows[k]].live)
-                preys.push(grids[y/10][x/10].tempCows[k]);
+                {
+                    ///console.log("before",grids[y/10][x/10].tempCows[k],"len:",cows.length);
+                    if(cows[grids[y/10][x/10].tempCows[k]].live)
+                    {
+                        //console.log("after",grids[y/10][x/10].tempCows[k]);
+                        preys.push(grids[y/10][x/10].tempCows[k]);
+                    }
+                }
+
             }
         }
     }
@@ -423,10 +435,10 @@ function TigerBFS(id,dx,dy)//初始的x,y
 
 
     /**根据某种规则选择猎物，也可以不追这个猎物 */
-    console.log("find");
+    //console.log("find");
     var target = preys[0];
-    console.log("找到的cow的目标id",target);
-    //
+    //console.log("找到的cow的目标id",target);
+    //console.log(target," len:",cows.length);
     endX = cows[target].x;
     endY = cows[target].y;
 
@@ -518,10 +530,6 @@ function TigerBFS(id,dx,dy)//初始的x,y
 // TigerBFS(0,0);
 
 
-
-
-
-
 //目前未完全实现
 function CowEscapce(x,y)
 {
@@ -556,7 +564,7 @@ function CowEscapce(x,y)
 function CowFindGrass(id)
 {
     iden = (cows[id].x/10)*60+(cows[id].y/10);
-    if(eatGrass(grasses[iden]))
+    if(cows[id].eatGrass(grasses[iden]))
     {
         return;
     }
@@ -595,19 +603,23 @@ function behave()
      * 如果需要逃跑则逃跑
      * 生命时钟tick
      */
-    for(i in cows)
+    for(var i =0;i<cows.length;i++)
     {
         if(cows[i].live)
         {
-            if(CowEscapce)
+            //console.log("a",i)
+            if(0)
             {
                 //执行逃跑
             }
             else
             {
+                //console.log("a",i);
                 if(cows[i].energy>20)//随便走
                 {
+                    //console.log("again",i);
                     grids[cows[i].y/10][cows[i].x/10].deleteCow(cows[i].id);
+                    //console.log("b",i);
                     cows[i].randomMove();
                     grids[cows[i].y/10][cows[i].x/10].tempCows.push(cows[i].id);
                 }
@@ -616,9 +628,10 @@ function behave()
                     CowFindGrass(i);
                 }
             }
+            ///console.log("b",i)
             cows[i].tick();
         }
-``
+
     }
 
     //对于可能的情况进行繁殖
@@ -629,7 +642,7 @@ function behave()
      * 如果能量足够就随机移动或者繁殖否则就捕捉牛
      * 生命时钟tick
      */
-    for(i in tigers)
+    for(var i=0;i<tigers.length;i++)
     {
         if(tigers[i].live)
         {
@@ -662,7 +675,7 @@ function behave()
      * 草的生命时钟tick
      * 繁殖
      */
-    for(i in grasses)
+    for(var i=0;i<grasses.length;i++)
     {
         if(grasses[i].live)
         {
