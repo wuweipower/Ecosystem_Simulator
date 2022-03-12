@@ -60,7 +60,7 @@ class species
     speed;//一次移动多少格 目前速度
     maxSpeed;//最大速度
     dir;//目前的方向
-    reproduceAge;
+    reproduceAge;//繁殖年龄
     stillReproduce;//设计为与年龄有关的 是否再生育
     id;//从0开始
     constructor(){}

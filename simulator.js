@@ -13,7 +13,6 @@ var grasses = new Array();
 
 
 
-
 function iscollide(s1,s2)
 {
    //矩形判断 一个点是否在另外一个矩形里面
@@ -677,7 +676,6 @@ function behave()
                     CowFindGrass(i);
                 }
             }
-            ///console.log("b",i)
             cows[i].tick();
         }
 
@@ -730,7 +728,7 @@ function behave()
 
 }
 
-
+var t;
 function draw()
 {
     context.clearRect(0,0,1000,600);
@@ -750,13 +748,14 @@ function draw()
     liveGrasses=0;
     liveTigers=0;
 
-    setTimeout("draw()",100);
+    t = setTimeout("draw()",60);
     //console.log();
     //requestAnimationFrame(draw);
 }
 
 function play()
 {
+    clearTimeout(t);
     //console.log(document.getElementById("ini_t").value);
     var t_num = document.getElementById("ini_t").value;
     var c_num = document.getElementById("ini_c").value;
@@ -769,7 +768,7 @@ function play()
     liveGrasses=0;
     liveTigers=0;
 
-    //清楚grids里面数据
+    //清除grids里面数据
     for(var i=0;i<60;i++)
     {
         for(var j=0;j<100;j++)
@@ -778,45 +777,25 @@ function play()
             grids[i][j].tempTigers.splice(0,grids[i][j].tempTigers.length);
         }
     }
+    Grass.number=-1;
+    Cow.numebr=-1;
+    Tiger.number = -1;
 
     initTiger(t_num);
     initCow(c_num);
     initGrass();
-    Grass.number=-1;
-    Cow.numebr=-1;
-    Tiger.number = -1;
+
+
     draw();
 }
-
-//测试碰撞函数
-
-// t1 = new Tiger();
-// t1.x = 0;
-// t1.y =0;
-// c1 = new Cow();
-// c1.x = 400;
-// c1.y = 0;
-// while(1)
-// {
-//     if(t1.live)
-//     {
-//         context.fillStyle = "blue";
-//         context.fillRect(t1.x,t1.y,10,10);
-//     }
-//     if(c1.live)
-//     {
-//         context.fillStyle = "red";
-//         context.fillRect(c1.x,c1.y,10,10);
-//     }
-//     if(!iscollide(t1,c1))
-//     {
-//         t1.x+=1;
-//     }
-//     else
-//     {
-//         t1.eatCow(c1);
-//         console.log(c1.live);
-//         break;
-//     }
-// }
+/**
+ * 改进的地方
+ * 1.修复数据残留的问题 已解决
+ * 2.将speed实际运用
+ * 3.参数合理
+ * 4.天气因素的问题
+ * 5.动画更好
+ * 6.时间的问题
+ * 7.是否能将地图扩大
+ */
 
