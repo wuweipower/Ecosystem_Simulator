@@ -138,27 +138,30 @@ function drawTiger()
 
 /**
  * 繁殖的策略
- * 将可能标记为死亡的个体复活 重新设置属性
+ * 将可能标记为死亡的个体复活 另存一个全局数组来保存 重新设置属性
  * 或者在数组中增加对象 
  */
+
+
+var deadGrassId= [];
 function GrassReproduce()
 {
-    var temp = new Array();
-    for(i in grasses)
-    {
-        if(!grasses[i].live)
-        {
-            temp.push(grasses[i].id);
-        }
-    }
+    // var temp = new Array();
+    // for(i in grasses)
+    // {
+    //     if(!grasses[i].live)
+    //     {
+    //         temp.push(grasses[i].id);
+    //     }
+    // }
     for(var i=0;i<grasses.length;i++)
     {
-        if(grasses[i].live && temp.length!=0 && grasses[i].age>=grasses[i].reproduceAge && grasses[i].stillReproduce)
+        if(grasses[i].live && deadGrassId.length!=0 && grasses[i].age>=grasses[i].reproduceAge && grasses[i].stillReproduce)
         {
-            var index = parseInt(Math.random()*temp.length)%temp.length;
+            var index = parseInt(Math.random()*deadGrassId.length)%deadGrassId.length;//随处长出来
             //index = temp.shift();
-            var backLiveId = temp[index];
-            temp.splice(index,1);
+            var backLiveId = deadGrassId[index];
+            deadGrassId.splice(index,1);
             //console.log(index);
             grasses[backLiveId].live = true;
             grasses[backLiveId].age = 0;
@@ -169,23 +172,25 @@ function GrassReproduce()
     }
 }
 
+
+var deadTigerId=[];
 function TigerReproduce()
 {
-    var temp = new Array();
-    for(i in tigers)
-    {
-        if(!tigers[i].live)
-        {
-            temp.push(tigers[i].id);
-        }
-    }
+    // var temp = new Array();
+    // for(i in tigers)
+    // {
+    //     if(!tigers[i].live)
+    //     {
+    //         temp.push(tigers[i].id);
+    //     }
+    // }
     for(var i=0; i<tigers.length;i++)
     {
         if(tigers[i].live  && tigers[i].age>=tigers[i].reproduceAge && tigers[i].stillReproduce)
         {
-            if(temp.length!=0)
+            if(deadTigerId.length!=0)
             {
-                var index = temp.shift();
+                var index = deadTigerId.shift();
                 //console.log('tiger index',index);
                 tigers[index].live = true;
                 tigers[index].age = 0;
@@ -209,23 +214,24 @@ function TigerReproduce()
     }
 }
 
+var deadCowsId=[];
 function CowReproduce()
 {
-    var temp = new Array();
-    for(var i=0;i<cows.length;i++)
-    {
-        if(!cows[i].live)
-        {
-            temp.push(cows[i].id);
-        }
-    }
+    // var temp = new Array();
+    // for(var i=0;i<cows.length;i++)
+    // {
+    //     if(!cows[i].live)
+    //     {
+    //         temp.push(cows[i].id);
+    //     }
+    // }
     for(var i=0;i<cows.length;i++)
     {
         if(cows[i].live  && cows[i].age>=cows[i].reproduceAge && cows[i].stillReproduce)
         {
-            if(temp.length!=0)
+            if(deadCowsId.length!=0)
             {
-                var index = temp.shift();
+                var index = deadCowsId.shift();
                 cows[index].live = true;
                 cows[index].age = 0;
                 cows[index].energy=3;
@@ -386,7 +392,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
         }
     }
 
-    //无目标猎物则随机移动
+    //无目标猎物则随机移动 根据气味
     if(preys.length==0)
     {
         //console.log("No");
@@ -428,7 +434,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
             tigers[id].move();
             grids[tigers[id].y/10][tigers[id].x/10].tempTigers.push(id);
         }
-        return ;//未找到猎物 执行根据气味移动的函数
+        return ;
     }
 
 
@@ -534,7 +540,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
 }
 
 
-//目前未完全实现
+//
 function CowEscapce(id,x,y) 
 {
     var enemy=[];//坐标
@@ -545,9 +551,10 @@ function CowEscapce(id,x,y)
         {
             var nextX = x+i*10;
             var nextY = y+j*10;
-            if(inside(nextX,nextY,0,1000-10,0,600-10)&&grids[nextY/10][nextX/10].tempTigers.length!=0);
+            if(inside(nextX,nextY,0,1000-10,0,600-10)&& grids[nextY/10][nextX/10].tempTigers.length!=0)
             {
                 enemy.push([nextX,nextY]);
+                //console.log(grids[nextY/10][nextX/10].tempTigers.length);
             }
         }
     }
@@ -617,6 +624,7 @@ function CowFindGrass(id)
     {
         return;
     }
+    var pos_array=[];
     for(var i =-1;i<=1;i++)
     {
         for(var j=-1;j<=1;j++)
@@ -624,18 +632,27 @@ function CowFindGrass(id)
             if(inside(cows[id].x + i*10, cows[id].y+j*10, 0,1000-10,0,600-10))
             {
                 iden = (cows[id].x/10 +i)*60+(cows[id].y/10 +j);
-                if(grasses[iden].live)
-                {
-                    grids[cows[id].y/10][cows[id].x/10].deleteCow(id);
-                    cows[id].eatGrass(grasses[iden]);
-                    cows[id].x = grasses[iden].x;
-                    cows[id].y = grasses[iden].y;
-                    grids[cows[id].y/10][cows[id].x/10].tempCows.push(id);
-                    return;
-                }
+                pos_array.push(iden);
             }
         }
     }
+    //做了一个类似环形链表的处理，使牛可以随机找到合适的草方块吃
+    for(var i=parseInt(Math.random()*pos_array.length)%pos_array.length,count=0;count<pos_array.length;i=(i+1)%pos_array.length,count++)
+    {
+       // console.log(i)
+        var iden = pos_array[i];
+        if(grasses[iden].live)
+        {
+            grids[cows[id].y/10][cows[id].x/10].deleteCow(id);
+            cows[id].eatGrass(grasses[iden]);
+            cows[id].x = grasses[iden].x;
+            cows[id].y = grasses[iden].y;
+            grids[cows[id].y/10][cows[id].x/10].tempCows.push(id);
+            return;
+        }
+    }
+
+
 }
 
 
@@ -662,6 +679,7 @@ function behave()
             if(CowEscapce(i,cows[i].x,cows[i].y))
             {
                 //会自动执行逃跑
+                //console.log("pao");
             }
             else
             {
@@ -669,14 +687,20 @@ function behave()
                 {
                     grids[cows[i].y/10][cows[i].x/10].deleteCow(cows[i].id);
                     cows[i].randomMove();
+                    //console.log("suiji");
                     grids[cows[i].y/10][cows[i].x/10].tempCows.push(cows[i].id);
                 }
                 else
                 {
-                    CowFindGrass(i);
+                    CowFindGrass(i);//找草吃
+                    //console.log("chicoa");
                 }
             }
             cows[i].tick();
+        }
+        else
+        {
+            deadCowsId.push(i);
         }
 
     }
@@ -709,6 +733,10 @@ function behave()
             }
             tigers[i].tick();
         }
+        else
+        {
+            deadTigerId.push(i);
+        }
     }
     //对于可能的情况进行繁殖
     TigerReproduce();
@@ -722,6 +750,9 @@ function behave()
         if(grasses[i].live)
         {
             grasses[i].tick();
+        }
+        else{
+            deadGrassId.push(i);
         }
     }
     GrassReproduce();
@@ -748,7 +779,7 @@ function draw()
     liveGrasses=0;
     liveTigers=0;
 
-    t = setTimeout("draw()",60);
+    t = setTimeout("draw()",10);
     //console.log();
     //requestAnimationFrame(draw);
 }
@@ -764,6 +795,10 @@ function play()
     tigers.splice(0,tigers.length);
     grasses.splice(0,grasses.length);
     cows.splice(0,cows.length);
+
+    deadCowsId.splice(0,deadCowsId.length);
+    deadTigerId.splice(0,deadTigerId.length);
+    deadGrassId.splice(0,deadGrassId.length);
     liveCows=0;
     liveGrasses=0;
     liveTigers=0;
