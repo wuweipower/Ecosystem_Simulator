@@ -361,6 +361,22 @@ class node
 dir = [[1,0],[0,1],[-1,0],[0,-1]];//右，下，左，上
 
 
+
+//创建地图 这里消耗了大量的空间
+map = new Array();
+for(var i=0;i<60;i++)
+{
+    map[i] = new Array();
+    for(var j=0;j<100;j++)
+    {
+        map[i][j] = new node(); 
+        map[i][j].x = j*10;
+        map[i][j].y = i*10;
+        map[i][j].type = grids[i][j].type;
+        map[i][j].is_close = map[i][j].is_open = false;
+    }
+}
+
 //包含找猎物，找不到后的随机运动，找到后的跟踪
 function TigerBFS(id,dx,dy)//初始的x,y
 {
@@ -447,22 +463,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
     endX = cows[target].x;
     endY = cows[target].y;
 
-
-    //创建地图
-    map = new Array();
-    for(var i=0;i<60;i++)
-    {
-        map[i] = new Array();
-        for(var j=0;j<100;j++)
-        {
-            map[i][j] = new node(); 
-            map[i][j].x = j*10;
-            map[i][j].y = i*10;
-            map[i][j].type = grids[i][j].type;
-            map[i][j].is_close = map[i][j].is_open = false;
-        }
-    }
-
+    var needRecover=[];
     //BFS
     var road = [];
     var open = new queue();
@@ -475,6 +476,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
     {
         var temp = open.pop();
         map[temp.y/10][temp.x/10].is_close = true;
+        needRecover.push(map[temp.y/10][temp.x/10]);
         if(map[endY/10][endX/10].is_close)
         {
             nx = endX/10;
@@ -487,7 +489,7 @@ function TigerBFS(id,dx,dy)//初始的x,y
                 ny = t.y/10;
                 if(map[ny][nx].type != Start) 
                 {
-                    map[ny][nx].road=6;
+                    //map[ny][nx].road=6;
                     road.push([nx,ny]);
                 }
 
@@ -536,7 +538,13 @@ function TigerBFS(id,dx,dy)//初始的x,y
        tigers[id].y = road[road.length-2][1]*10;
        grids[tigers[id].y/10][tigers[id].x/10].tempTigers.push(id);
    }
-   
+
+   //恢复初始
+   map[dy/10][dx/10].type = null;
+   for(var i =0;i<needRecover.length;i++){
+       needRecover[i].is_close=false;
+       needRecover[i].is_open = false;
+   }
 }
 
 
@@ -757,6 +765,9 @@ function behave()
     }
     GrassReproduce();
 
+    deadCowsId.splice(0,deadCowsId.length);
+    deadTigerId.splice(0,deadTigerId.length);
+    deadGrassId.splice(0,deadGrassId.length);
 }
 
 var t;
@@ -779,7 +790,7 @@ function draw()
     liveGrasses=0;
     liveTigers=0;
 
-    t = setTimeout("draw()",10);
+    // t = setTimeout("draw()",10);
     //console.log();
     //requestAnimationFrame(draw);
 }
@@ -821,7 +832,10 @@ function play()
     initGrass();
 
 
-    draw();
+    //draw();
+    setInterval(() => {
+        draw();
+    }, 20);
 }
 /**
  * 改进的地方
@@ -832,5 +846,6 @@ function play()
  * 5.动画更好
  * 6.时间的问题
  * 7.是否能将地图扩大
+ * 
  */
 
