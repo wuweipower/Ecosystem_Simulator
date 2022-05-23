@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>-->
+
+        
+        <script src="dataStruc.js"></script>
+        <script src="species.js"></script>
+        <meta charset="utf-8">
+        <title>simulator</title>
+
+        <link rel = "stylesheet"  type="text/css" href="style.css"> 
+    </head>
+    <body>
+    <canvas id="myCanvas" height="6000"  width="2000" style="border:1px solid #d3d3d3;"></canvas>
+        <div class="bottom" action="index.html">
+            <br>
+            Tiger Number: <span id="tigerNum">    </span>
+            <br>
+            Cow Number: <span id="cowNum">        </span>
+            <br>
+            Grass Number: <span id="grassNum">    </span> 
+            <br>
+            Weather: <span id="weather"></span>
+            <br>
+            <br>
+            Initial Tiger Number:<input class="data" id="ini_t" >
+            Initial Cow Number:<input class="data" id="ini_c">
+            <button id="start" onclick="play()">Start</button>
+            <script src="simulator.js"></script>
+            
+            <form method="post">
+                <br>
+                <br>
+                <br>
+                Species Type:
+                <input type="radio" name="species_type" value="Tiger" checked />Tiger
+                <input type="radio" name="species_type" value="Cow" />Cow
+                <input type="radio" name="species_type" value="Grass" />Grass
+            </form>
+            <br>
+            ID:<input class="data" id="id_f" >
+            <button id="start" onclick="search_id()">Search</button>
+            <br>
+            <br>
+            Live: <span id="s_live">    </span>
+            <br>
+            X: <span id="s_x">    </span>
+            <br>
+            Y: <span id="s_y">    </span>
+            <br>
+            Direction: <span id="s_dir">    </span>
+            <br>
+            Age: <span id="s_age">    </span>
+            <br>
+            Energy: <span id="s_energy">        </span>
+            <br>
+            ReproduceNum: <span id="s_reproduce_num">    </span> 
+            <br>
+
+
+        </div>
+
+    </body>
+</html>

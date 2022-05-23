@@ -1,0 +1,39 @@
+.bottom
+{
+    top:0%; 
+    left: 70%;
+    width: 300px;
+    position: absolute;
+
+    color: #3498db;
+    text-align: center;
+}
+body{
+    background-color: rgb(31, 29, 29);
+}
+.data
+{
+    border: 0;
+    background: none;
+    display:block;
+    margin: 10px auto;
+    text-align: center;
+    border: 2px solid #3498db;
+    padding: 4px 12px;
+    width: 40px;
+    outline: none;
+    color: white;
+    border-radius: 20px;
+    transition: 0.25s;
+}
+#start
+{
+    border: 0;
+    background: none;
+    text-align: center;
+    
+    padding: 4px 12px;
+    border:2px solid #3498db;
+    color: white;
+    cursor: pointer;
+}
